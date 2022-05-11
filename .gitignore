@@ -1,0 +1,6 @@
+.env
+# test/
+node_modules/
+googleToken.json
+credentials.json
+config/
