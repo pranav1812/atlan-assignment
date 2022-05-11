@@ -1,7 +1,5 @@
 const fs = require('fs');
-const readline = require('readline');
 const {google} = require('googleapis');
-const compute = google.compute('v1');
 
 // get link for oauth
 const poc= async()=> {
