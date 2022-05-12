@@ -1,7 +1,13 @@
 const { Model } = require('sequelize');
 
 module.exports= (sequelize, Sequelize)=> {
-    class User extends Model {}
+    class User extends Model {
+        static associate({
+            MasterFormTable
+        }){
+            this.hasMany(MasterFormTable, { foreignKey: 'owner' })
+        }
+    }
     User.init({
         id: {
             type: Sequelize.UUID,

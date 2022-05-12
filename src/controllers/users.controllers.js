@@ -3,7 +3,6 @@ const bcrypt= require('bcrypt');
 
 const {
     signToken,
-    verifyToken
 }= require('../utility/jwt');
 
 const {
@@ -15,10 +14,10 @@ const {
 const {
     client_id: clientId,
     client_secret: clientSecret,
-    redirect_uris: redirectUri,
+    redirect_uris,
 }= require('../../googleToken.json')['web']
 
-const redirectUri= redirectUri[0]
+const redirectUri= redirect_uris[0]
 const scope= [
     'https://www.googleapis.com/auth/spreadsheets',
 ];
