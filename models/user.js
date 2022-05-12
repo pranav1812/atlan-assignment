@@ -5,7 +5,7 @@ module.exports= (sequelize, Sequelize)=> {
         static associate({
             MasterFormTable
         }){
-            this.hasMany(MasterFormTable, { foreignKey: 'owner' })
+            this.hasMany(MasterFormTable, { foreignKey: 'id' })
         }
     }
     User.init({

@@ -2,7 +2,8 @@ const express= require('express');
 
 const {
     createForm,
-    fillForm
+    fillForm,
+    viewResponses
 }= require('../controllers/form.controllers');
 
 const {
@@ -11,7 +12,8 @@ const {
 
 const router= express.Router();
 
+router.get('/viewResponses/:formLink', verifyUser, viewResponses);
 router.post('/create', verifyUser, createForm);
-router.post('/fill', fillForm);
+router.post('/fill/formLink', fillForm);
 
 module.exports= router

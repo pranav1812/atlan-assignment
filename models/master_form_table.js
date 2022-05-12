@@ -1,7 +1,11 @@
 const { Model } = require('sequelize');
 
 module.exports= (sequelize, Sequelize)=> {
-    class MasterFormTable extends Model {}
+    class MasterFormTable extends Model {
+        static associate({ User }) {
+            MasterFormTable.belongsTo(User, { foreignKey: 'id' });
+        }
+    }
     MasterFormTable.init({
         id: {
             type: Sequelize.UUID,
@@ -26,6 +30,7 @@ module.exports= (sequelize, Sequelize)=> {
         response_link: {
             type: Sequelize.STRING,
             allowNull: false,
+            unique: true
         },
         table: {
             type: Sequelize.STRING,
