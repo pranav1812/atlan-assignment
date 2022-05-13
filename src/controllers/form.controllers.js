@@ -76,11 +76,36 @@ const fillForm = async(req, res) => {
         const { data } = req.body;
 
         // get info about actual table from master record on the basis of formLink
-
-
+        const [err, masterFormTableRecord]= await findMasterFormTableByQuery({
+            responseLink: formLink
+        });
+        if (err || !masterFormTableRecord) {
+            console.log(`Error finding master form table: ${err}`);
+            return res.status(400).json({
+                error: `Error finding master form table: ${err}`,
+                message: null,
+                code: 400
+            });
+        }
+        var { columns, table }= masterFormTableRecord;
+        columns= JSON.parse(columns);
+        var fieldsInData= Object.keys(data);
         // create a new record on the actual table
+        const newRecord= await sequelize.query(`INSERT INTO ${table} (${columns.join(',')}) VALUES (${fieldsInData.map(field=> `'${data[field]}'`).join(',')})`);
+        // return the new record
+        return res.status(200).json({
+            error: null,
+            message: `Form filled successfully`,
+            code: 200,
+            data: newRecord
+        });
     } catch (error) {
-        
+        console.log(`Error filling form: ${error}`);
+        return res.status(500).json({
+            error: `Error filling form: ${error}`,
+            message: null,
+            code: 500
+        });
     }
 }
 
@@ -88,14 +113,41 @@ const viewResponses = async(req, res) => {
     try {
         const { formLink } = req.params;
         // get info about actual table from master record on the basis of formLink
-
+        const [err, masterFormTableRecord]= await findMasterFormTableByQuery({
+            responseLink: formLink
+        });
+        if (err || !masterFormTableRecord) {
+            console.log(`Error finding master form table: ${err}`);
+            return res.status(400).json({
+                error: `Failed to find form: ${err}`,
+                message: null,
+                code: 400
+            });
+        }
         // first validate that req.user.uid== owner of the form
-
-        // get all records from the actual table ordered by createdAt desc
-
+        if (req.user.uid != masterFormTableRecord.owner) {
+            return res.status(403).json({
+                error: `You are not authorized to view this form`,
+                message: null,
+                code: 403 // forbidden
+            });
+        }
+        // get all records from the actual table ordered by createdAt 
+        const records= await sequelize.query(`SELECT * FROM ${masterFormTableRecord.table} ORDER BY createdAt`);
         // return the records
+        return res.status(200).json({
+            error: null,
+            message: `Form ${formLink} retrieved successfully`,
+            code: 200,
+            data: records
+        });
     } catch (error) {
-        
+        console.log(`Error finding master form table: ${error}`);
+        return res.status(500).json({
+            error: `Error finding master form table: ${error.message}`,
+            message: null,
+            code: 500
+        });
     }
 }
 

@@ -16,13 +16,19 @@ const exportToGoogleSheets= async(accessInfo, formObj, metaData)=> {
         );
         oAuth2Client.setCredentials(JSON.parse(tokenObj));
         const googleSheet = google.sheets({version: 'v4', auth: oAuth2Client});
+        // create a new sheet and add to it all rows from formObj
         const newSheet= await googleSheet.spreadsheets.create({
             resource: {
                 properties: {
-                    title: metaData.response_link
-                }
-            }
+                    title: metaData.response_link,
+                },
+            },
         });
+        // extract sheet id from response 
+        const sheetId= newSheet.data.spreadsheetId;
+        // 
+
+
     } catch (error) {
         
     }
