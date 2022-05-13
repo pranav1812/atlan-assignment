@@ -1,6 +1,6 @@
 const { Op } = require('sequelize');
 
-const User= require('../../models/');
+const { User }= require('../../models/');
 
 const createUserRepo= async(userObj)=> {
     try {

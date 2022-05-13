@@ -12,17 +12,34 @@ const {
 
 const dataTypeMap= {
     text: Sequelize.TEXT,
-    number: Sequelize.NUMBER,
+    integer: Sequelize.INTEGER,
     date: Sequelize.DATE,
     string: Sequelize.STRING,
     boolean: Sequelize.BOOLEAN,
 }
 
-const _generateUniqueFormLink= (formName)=> `${Date.now()}-${Math.floor(Math.random()*1000000).toString(16)}-${formName}`;
+const _generateUniqueFormLink= (formName)=> `${Date.now()}_${Math.floor(Math.random()*1000000).toString(16)}_${formName}`;
+
+const _getDate= ()=>{
+    // return date time in mysql format
+    var today= new Date().toISOString()
+    return today.slice(0, 19).replace('T', ' ');
+}
 
 const createForm = async(req, res) => {
     try {
-        const { formName, formSchema, description, metaData } = req.body;
+        const { uid }= req.user;
+        if (!uid) {
+            return res.status(400).json({
+                error: `User not logged in`,
+                message: null,
+                code: 400
+            });
+        }
+        var { formName, formSchema, description, metaData } = req.body;
+        // replace all '-' with '_' in formName
+        formName= formName.replace(/-/g, '_');
+        console.log(formName, formSchema, description, metaData)
         // create a new table on the database with the given schema in req.body with 
         // formSchema is an object of objects
         var keys = Object.keys(formSchema);
@@ -33,17 +50,33 @@ const createForm = async(req, res) => {
                 newType= Sequelize.TEXT;
             formSchema[key].type= newType;
         }
-        const newTableModel= sequelize.define(formName, formSchema);
+
+        formSchema['createdAt']= {
+            type: Sequelize.DATE,
+            defaultValue: Sequelize.NOW
+        }
+        formSchema['updatedAt']= {
+            type: Sequelize.DATE,
+            defaultValue: Sequelize.NOW
+        }
+        keys.push('createdAt');
+        keys.push('updatedAt');
+
+        // don't add 's' after table name
+        const newTableModel= sequelize.define(formName, formSchema, { 
+            freezeTableName: true,
+        });
         await newTableModel.sync();
         const  formLink= _generateUniqueFormLink(formName);
         const [err, newMasterFormTableRecord]= await createMasterFormTable({
             title: formName,
             table: formName,
-            responseLink: formLink,
+            response_link: formLink,
             description: description,
             meta_data: JSON.stringify(metaData),
             table_schema: JSON.stringify(formSchema),
             columns: JSON.stringify(keys),
+            owner: uid
         });
         if (err) {
             console.log(`Error creating new master form table: ${err}`);
@@ -56,15 +89,15 @@ const createForm = async(req, res) => {
         return res.status(200).json({
             error: null,
             message: `Form ${formName} created successfully`,
-            code: 200
+            code: 200,
+            data: {
+                responseLink: `${rootUrl}/forms/fill/${formLink}`,
+            }
         });
     } catch (error) {
         return res.status(500).json({
-            error: `Error creating new master form table: ${error.message}`,
+            error: `Error in creating new master form table: ${error.message}`,
             message: null,
-            data: {
-                link: rootUrl + '/forms/fill' + formLink
-            },
             code: 500
         });
     }
@@ -77,7 +110,7 @@ const fillForm = async(req, res) => {
 
         // get info about actual table from master record on the basis of formLink
         const [err, masterFormTableRecord]= await findMasterFormTableByQuery({
-            responseLink: formLink
+            response_link: formLink
         });
         if (err || !masterFormTableRecord) {
             console.log(`Error finding master form table: ${err}`);
@@ -87,17 +120,23 @@ const fillForm = async(req, res) => {
                 code: 400
             });
         }
+        console.log(masterFormTableRecord);
         var { columns, table }= masterFormTableRecord;
         columns= JSON.parse(columns);
         var fieldsInData= Object.keys(data);
-        // create a new record on the actual table
-        const newRecord= await sequelize.query(`INSERT INTO ${table} (${columns.join(',')}) VALUES (${fieldsInData.map(field=> `'${data[field]}'`).join(',')})`);
+
+        var currTime= _getDate();
+        console.log(`(${fieldsInData.map(field=> `${data[field]}`).join(',')})`);
+        const sqlQuery= `INSERT INTO ${table} (${columns.join(',')}) VALUES (${fieldsInData.map(field=> `'${data[field]}'`).join(',')}, '${currTime}','${currTime}')`;
+        // console.log(sqlQuery);
+
+        await sequelize.query(sqlQuery);
         // return the new record
         return res.status(200).json({
             error: null,
             message: `Form filled successfully`,
             code: 200,
-            data: newRecord
+            data: {}
         });
     } catch (error) {
         console.log(`Error filling form: ${error}`);

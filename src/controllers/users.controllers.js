@@ -31,7 +31,7 @@ const createUser= async(req, res)=> {
         let access_info= JSON.stringify({})
         const [err, createdUser]= await createUserRepo({
             username,
-            hashedPassword,
+            password: hashedPassword,
             access_info
         });
         if (err){
@@ -68,6 +68,7 @@ const createUser= async(req, res)=> {
 const linkGoogleAccount= async(req, res)=> {
     try {
         const {uid}= req.user;
+        console.log(`uid: ${uid}`);
         const oAuth2Client  = new google.auth.OAuth2(
             clientId,
             clientSecret,
@@ -89,6 +90,7 @@ const linkGoogleAccount= async(req, res)=> {
 const callback= async(req, res)=> {
     try {
         const {state, code, scope: scp}= req.query;
+        console.log(`state: ${state}`);
         if (scp != scope){
             return res.status(500).json({
                 error: 'Invalid scope',
@@ -113,8 +115,9 @@ const callback= async(req, res)=> {
                 code: 404
             });
         }
-        const access_info= JSON.parse(user.access_info);
+        var access_info= JSON.parse(user.access_info);
         access_info.googleSheet= tokens;
+        access_info= JSON.stringify(access_info);
         const [err2, updatedUser]= await updateUserByQueryRepo({
             id: state
         }, {

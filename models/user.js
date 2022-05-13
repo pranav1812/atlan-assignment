@@ -17,7 +17,8 @@ module.exports= (sequelize, Sequelize)=> {
         },
         username: {
             type: Sequelize.STRING,
-            allowNull: false
+            allowNull: false,
+            unique: true
         },
         password: {
             type: Sequelize.STRING,
@@ -30,7 +31,7 @@ module.exports= (sequelize, Sequelize)=> {
         sequelize,
         modelName: 'User',
         timestamps: true,
-        tableName: 'user',
+        tableName: 'users',
         createdAt: 'created_at',
         updatedAt: 'updated_at'
     });

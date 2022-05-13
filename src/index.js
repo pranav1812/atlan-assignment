@@ -1,7 +1,8 @@
 const express= require('express');
 const cors= require('cors');
 const { urlencoded } = require('express');
-
+require('dotenv').config({ path: '.env' });
+console.log(process.env.SIGNING_KEY);
 const app= express();
 
 app.use(express.json());

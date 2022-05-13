@@ -14,6 +14,6 @@ const router= express.Router();
 
 router.get('/viewResponses/:formLink', verifyUser, viewResponses);
 router.post('/create', verifyUser, createForm);
-router.post('/fill/formLink', fillForm);
+router.post('/fill/:formLink', fillForm);
 
 module.exports= router
