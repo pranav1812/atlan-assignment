@@ -28,12 +28,28 @@ const exportToGoogleSheets= async(accessInfo, formObj, metaData)=> {
         // extract sheet id from response 
         const sheetId= newSheet.data.spreadsheetId;
         console.log(`Created new sheet with id: ${sheetId}`);
-        // 
+
+        // export all rows from formObj to sheet 0 of the new sheet: formObj is in JS array of objects format
+        
+        const exportResponse= await googleSheet.spreadsheets.values.update({
+            spreadsheetId: sheetId,
+            range: 'Sheet1', 
+            valueInputOption: 'USER_ENTERED',
+            resource: {
+                values: [
+                    Object.keys(formObj[0]).map(key=> key),
+                    ...formObj.map(row=> Object.values(row)),
+                ],
+            },            
+        });
+        
         return {
             code: 200,
             error: null,
             message: 'Successfully created new sheet',
-            data:  newSheet.data
+            data:  {
+                sheetId,
+            }
         }
 
     } catch (error) {
