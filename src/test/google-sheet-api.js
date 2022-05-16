@@ -25,7 +25,8 @@ const poc= async()=> {
         const url = oAuth2Client.generateAuthUrl({
             access_type: 'offline',
             scope,
-            state: 'alphaCrow'
+            state: 'alphaCrow',
+            prompt: 'consent'
         });
         console.log(`authUrl: ${url}`);
         
@@ -56,7 +57,7 @@ const poc= async()=> {
 // get user tokens from temporary code
 const poc2= async()=> {
     try {
-        const code= "4/0AX4XfWjYk7AgzmIFlGXG_ZJHpcDvRmZN5PuuW0sKuZxmVMzWNii0OC5V4-iXq_XreQDmjg";
+        const code= "4/0AX4XfWiw6Fn-gtcuxJkoeWj0cdJBZamM0USNPKnbE7_AIIfFszhsa0Oqme9fH2TrcfhGgw";
         const clientId= "603286156054-l0751ppjpnff1sislgt8iq2l8ttvsa00.apps.googleusercontent.com"
         const clientSecret= "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"
         const redirectUri= "http://localhost:5001/users/callback"

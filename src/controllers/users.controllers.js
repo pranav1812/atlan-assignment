@@ -78,7 +78,8 @@ const linkGoogleAccount= async(req, res)=> {
         const url = oAuth2Client.generateAuthUrl({
             access_type: 'offline',
             scope,
-            state: uid
+            state: uid,
+            prompt: 'consent'
         });
         console.log(`authUrl: ${url}`);
         res.status(200).redirect(url);

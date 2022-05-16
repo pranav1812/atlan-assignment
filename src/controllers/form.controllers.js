@@ -92,6 +92,7 @@ const createForm = async(req, res) => {
             code: 200,
             data: {
                 responseLink: `${rootUrl}/forms/fill/${formLink}`,
+                viewResponsesLink: `${rootUrl}/forms/viewResponses/${formLink}`
             }
         });
     } catch (error) {
@@ -126,7 +127,8 @@ const fillForm = async(req, res) => {
         var fieldsInData= Object.keys(data);
 
         var currTime= _getDate();
-        console.log(`(${fieldsInData.map(field=> `${data[field]}`).join(',')})`);
+        
+        // console.log(`(${fieldsInData.map(field=> `${data[field]}`).join(',')})`);
         const sqlQuery= `INSERT INTO ${table} (${columns.join(',')}) VALUES (${fieldsInData.map(field=> `'${data[field]}'`).join(',')}, '${currTime}','${currTime}')`;
         // console.log(sqlQuery);
 
@@ -151,16 +153,17 @@ const fillForm = async(req, res) => {
 const viewResponses = async(req, res) => {
     try {
         const { formLink } = req.params;
+        console.log(formLink);
         // get info about actual table from master record on the basis of formLink
         const [err, masterFormTableRecord]= await findMasterFormTableByQuery({
-            responseLink: formLink
+            response_link: formLink
         });
         if (err || !masterFormTableRecord) {
             console.log(`Error finding master form table: ${err}`);
-            return res.status(400).json({
+            return res.status(404).json({
                 error: `Failed to find form: ${err}`,
                 message: null,
-                code: 400
+                code: 404
             });
         }
         // first validate that req.user.uid== owner of the form
@@ -172,13 +175,15 @@ const viewResponses = async(req, res) => {
             });
         }
         // get all records from the actual table ordered by createdAt 
+        console.log(`TABLE: ${masterFormTableRecord.table}`)
         const records= await sequelize.query(`SELECT * FROM ${masterFormTableRecord.table} ORDER BY createdAt`);
+        console.log(JSON.stringify(records[0], null, 2));
         // return the records
         return res.status(200).json({
             error: null,
             message: `Form ${formLink} retrieved successfully`,
             code: 200,
-            data: records
+            data: records[0]
         });
     } catch (error) {
         console.log(`Error finding master form table: ${error}`);
